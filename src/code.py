@@ -39,16 +39,20 @@ else:
     WALKING_TIMES = dict(zip(STATION_CODES, WALKING_TIMES))
 
 def is_off_hours() -> bool:
-    now = wifi.get(TIME_URL).text
-    now_hour = int(now[11:13])
-    now_minute = int(now[14:16])
-    after_end = now_hour > OFF_HOUR or (now_hour == OFF_HOUR and now_minute > OFF_MINUTE)
-    before_start = now_hour < ON_HOUR or (now_hour == ON_HOUR and now_minute < ON_MINUTE)
+    try:
+        now = wifi.get(TIME_URL, timeout=1).text
+        now_hour = int(now[11:13])
+        now_minute = int(now[14:16])
+        after_end = now_hour > OFF_HOUR or (now_hour == OFF_HOUR and now_minute > OFF_MINUTE)
+        before_start = now_hour < ON_HOUR or (now_hour == ON_HOUR and now_minute < ON_MINUTE)
 
-    if ON_HOUR < OFF_HOUR or (ON_HOUR == OFF_HOUR and ON_MINUTE < OFF_MINUTE):
-        return after_end or before_start
-    else:
-        return after_end and before_start
+        if ON_HOUR < OFF_HOUR or (ON_HOUR == OFF_HOUR and ON_MINUTE < OFF_MINUTE):
+            return after_end or before_start
+        else:
+            return after_end and before_start
+    except Exception as e:
+        print(e)
+        return False
 
 api = MetroApi()
 
