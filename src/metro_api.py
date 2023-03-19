@@ -1,4 +1,3 @@
-import board
 import time
 
 from config import config
@@ -21,16 +20,18 @@ class MetroApi:
 
             if config['source_api'] == 'WMATA':
                 # WMATA Method
-                api_url = config['metro_api_url1'] + ','.join(set(station_codes))
-                response = wifi.get(api_url, headers={'api_key': config['metro_api_key1']}, timeout=1)
-                trains = list(filter(lambda t: (t['LocationCode'], t['Group']) in groups, response.json()['Trains']))
+                api_url = config['wmata_api_url'] + ','.join(set(station_codes))
+                response = wifi.get(api_url, headers={'api_key': config['wmata_api_key']}, timeout=1).json()
+                trains = list(filter(lambda t: (t['LocationCode'], t['Group']) in groups, response['Trains']))
             else:
                 #Metro Hero Method
                 trains = []
                 for station in set(station_codes): # select trains in desired direction
-                    api_url = config['metro_api_url2'].replace('[stationCode]', station)
-                    response = wifi.get(api_url, headers={'apiKey': config['metro_api_key2']}, data={'includeScheduledPredictions':True}, timeout = 30).json()
-                    trains.extend(list(filter(lambda t: (station, t['Group']) in groups, response)))
+                    api_url = config['metro_hero_api_url'].replace('[stationCode]', station)
+                    response = wifi.get(api_url, headers={'apiKey': config['metro_hero_api_key']}, timeout = 30)
+                    res = response.json()[:5]
+                    response.close()
+                    trains.extend(list(filter(lambda t: (station, t['Group']) in groups, res)))
 
             print('Received response from ' + config['source_api'] + ' api...')
             TIME_BUFFER = round((time.time() - start)/60) + 1
@@ -38,13 +39,15 @@ class MetroApi:
 
             if walks != {}:
                 trains = list(filter(lambda t: self.arrival_map(t['arrival'])-walks[t['loc']] >= 0, trains))
+                irint("a")
 
             if len(groups) > 1:
                 trains = sorted(trains, key=lambda t: self.arrival_map(t['arrival']))
 
-            print(trains)
+            print("Trains returned by api: ")
+            for train in trains:
+                print(train)
             print('Time to Update: ' + str(time.time() - start))
-            response.close()
             return trains
 
         except Exception as e:
@@ -70,22 +73,20 @@ class MetroApi:
         line = train['Line']
         destination = train['Destination']
         loc = train['LocationCode']
-        arrival = train['Min']
 
-        #MetroHero does fancy forecasting
-        if ':' in arrival:
-            arrival = str(train['minutesAway'])
+        if 'minutesAway' in train:
+            arrival = round(float(train['minutesAway']))
+        else:
+            arrival = int(train["Min"])
 
-        #Adjust for time to wait for the REST API
-        if arrival.isdigit():
-            arrival = int(arrival) - buff
-            if arrival <= 0:
-                arrival = 'ARR'
-            else:
-                arrival = str(int(arrival))
+        arrival = arrival - buff
+        if arrival <= 0:
+            arrival = 'ARR'
+        else:
+            arrival = str(arrival)
 
-        if destination == 'No Passenger' or destination == 'NoPssenger' or destination == 'ssenger':
-            destination = 'No Psngr'
+        if destination in config["station_mapping"]:
+            destination = config["station_mapping"][destination]
 
         return {
             'line_color': self._get_line_color(line),

@@ -1,5 +1,3 @@
-Forked from [metro-sign](https://github.com/metro-sign/dc-metro) to allow multiple stations and implement a "walking distance" modifier to ignore trains you cannot get to in time. Requires CircuitPython 7. Follow below instructions but replace CircuitPython version 6 with version 7. Libraries must also be replaced with version 7 libraries, included in my lib.zip.
-
 # Washington DC Metro Train Sign
 This project contains the source code to create your own Washington DC Metro sign. It was written using CircuitPython targeting the [Adafruit Matrix Portal](https://www.adafruit.com/product/4745) and is optimized for 64x32 RGB LED matrices.
 
@@ -13,7 +11,7 @@ This project contains the source code to create your own Washington DC Metro sig
     - [64x32 RGB LED Matrix - 4mm pitch](https://www.adafruit.com/product/2278)
     - [64x32 RGB LED Matrix - 5mm pitch](https://www.adafruit.com/product/2277)
     - [64x32 RGB LED Matrix - 6mm pitch](https://www.adafruit.com/product/2276)
-- A **USB-C power supply** (15w phone adapters should work fine)
+- A **USB-C power supply** (15w phone adapters should work fine for this code, but the panels can theoretically pull 20w if every pixel is on white)
 - A **USB-C cable** that can connect your computer/power supply to the board
 
 ## Tools
@@ -60,6 +58,8 @@ This project contains the source code to create your own Washington DC Metro sig
 
 3. Decompress the _lib.zip_ file from this repository into the root of the _CIRCUITPY_ volume. There should be one folder named _lib_, with a plethora of files underneath. You can delete _lib.zip_ from the _CIRCUITPY_ volume, as it's no longer needed.
 
+    - It has been reported that this step may fail ([Issue #2](https://github.com/metro-sign/dc-metro/issues/2)), most likely due to the storage on the Matrix Portal not being able to handle the decompression. If this happens, unzip the _lib.zip_ file on your computer, and copy the _lib_ folder to the Matrix Portal. Command line tools could also be used if the above doesn't work.
+
     ![Lib Decompressed](img/lib.png)
 
 4. Copy all of the Python files from _src_ in this repository into the root of the _CIRCUITPY_ volume.
@@ -70,20 +70,42 @@ This project contains the source code to create your own Washington DC Metro sig
 
     ![Loading Sign](img/loading.jpg)
 
-## Part 3: Getting a WMATA API Key
+## Part 3: Getting a WMATA / Metro Hero API Key
+Two API's are available with public metro data. The Official WMATA API and the MetroHero API. Either will work, but I opt for the latter because I think it's train times are more accurate and because it gives estimates for trains >30 minutes away. Either will work correctly
+
+### Part 3.a: Getting a WMATA API Key
 1. Create a WMATA developer account on [WMATA's Developer Website](https://developer.wmata.com/signup/).
 2. After your account is created, add the _Default Tier_ subscription to your account on [this page](https://developer.wmata.com/products/5475f1b0031f590f380924fe).
 3. After doing this, you will be redirected to [your profile](https://developer.wmata.com/developer).
 4. Under the _Subscriptions_ section on your profile, select the **show** button beside the _Primary Key_. This is the key that allows the board to communicate with WMATA.
 
-## Part 4: Configuring the Board
+### Part 3.b: Getting a Metro Hero Key
+1. Send an polite email to contact@dcmetrohero.com asking for an API Key. [MetroHero's Developer Website](https://www.dcmetrohero.com/apis).
+2. Wait patiently for their reply with your API key.
+
+
+## Part 4: (Optional) Obtain adafruit IO Key for Off Hours.
+If you'd like to configure your board to turn the display off for certain hours of the day, you'll need to set up a free account with Adafruit to make requests for the local time. You may skip this if you are not interested in this feature.
+
+1. Follow steps 1-3 outlined [here](https://learn.adafruit.com/adafruit-magtag/getting-the-date-time).
+2. Make note of your username and your Adafruit IO key.
+
+## Part 5: Configuring the Board
 1. Open the [config.py](src/config.py) file located in the root of the _CIRCUITPY_ volume.
 2. Fill in your WiFi SSID and password under the **Network Configuration** section.
 3. Under the **Metro Configuration** section:
-    1. Select your station and lines from the [Metro Station Codes table](#dc-metro-station-codes), and set the _metro_station_code_ value to the corresponding value in the table.
-    2. For _train_group_, the value needs to be either **'1'** or **'2'**. This determines which platform's arrival times will be displayed. This value isn't well documented by WMATA, so your best bet is to try one value, and if it's the wrong direction, use the other value.
-    3. Set the _metro_api_key_ value to the API key you got from [Part 3](#part-3-getting-a-wmata-api-key).
+    1. If using MetroHero, update the _source_api_ field to `MetroHero`.
+    2. Set either the _wmata_api_key_ or _metro_hero_api_key to the API key you got from [Part 3](#part-3-getting-a-wmata-/-metro-hero-api-key).
+    3. Select your stations and lines from the [Metro Station Codes table](#dc-metro-station-codes), and set the _metro_station_codes_ value to the corresponding value in the table.
+    4. For _train_groups_, the values need to be either **'1'** or **'2'** or  **'3'**. This determines which platform's arrival times will be displayed. These typically fall in line with the values provided in the [Train Group table](#train-group-explanations), although single tracking and other events can cause these to change. The ordering must match the ordering used in _metro_station_codes_.
+    5. Set the _walking_times_ values to the time it takes you to get to these stations. This will make your sign ignore trains arriving in less than this much time.
+4. (Optional) Under the **Off Hours Configuration** section:
+    1. Set _aio_username_ to the username you created with Adafruit in [Part 4]((optional)-obtain-adafruit-io-key-for-off-hours).
+    2. Set _aio_key_ to the api key associated with your Adafruit account.
+    3. Set the _display_on_time_ and _display_off_time_ variables to the time of day you would like the sign to be turned off and on. Note that they must be of the format "HH:MM" and use a 24 hour clock.
 4. At the end, the first part of your configuration file should look similar this:
+
+
 
 ```python
 #########################
@@ -99,21 +121,49 @@ This project contains the source code to create your own Washington DC Metro sig
 #########################
 # Metro Configuration   #
 #########################
+'source_api': 'WMATA', # WMATA or MetroHero.
+
+# WMATA / MetroHero API Key
+'wmata_api_key': 'd3adb33fd3adb33fd3adb33f',
+'metro_hero_api_key': '',
 
 # Metro Station Code
-'metro_station_code': 'D02',
+'metro_station_codes': ['E03','C02'],
 
 # Metro Train Group
-'train_group': '2',
+'train_groups': ['2','2'],
+
+#Walking Distance Times, ignore trains arriving in less than this time
+# [2, 12]
+'walking_times': [8, 8],
 
 # API Key for WMATA
 'metro_api_key': 'd3adb33fd3adb33fd3adb33f',
+
+...
+...
+...
+
+#############################
+# Off Hours Configuration   #
+#############################
+
+# adafruit io settings, necessary for determining current time to sleep
+# An account is free to set up, instructions below
+# https://learn.adafruit.com/adafruit-magtag/getting-the-date-time
+'aio_username': 'aio_username',
+'aio_key': 'jf9834f983hf98h434',
+
+# Time of day to turn board on and off - must be 24 hour "HH:MM"
+'display_on_time': "07:00",
+'display_off_time': "22:00",
 ```
+
 
 5. After you save this file, your board should refresh and connect to WMATA.
 
 ## Troubleshooting
-If something goes wrong, take a peek at the [Adafruit Documentation](https://learn.adafruit.com/adafruit-matrixportal-m4). Additionally, you can connect to the board using a serial connection to gain access to its logging.
+If something goes wrong, take a peek at the [Adafruit Documentation](https://learn.adafruit.com/adafruit-matrixportal-m4). Additionally, you can connect to the board using a [serial connection](https://learn.adafruit.com/welcome-to-circuitpython/kattni-connecting-to-the-serial-console) to gain access to its logging.
 
 # Appendix
 ## DC Metro Station Codes
@@ -214,3 +264,26 @@ If something goes wrong, take a peek at the [Adafruit Documentation](https://lea
 | White Flint                                      | RD         | A12  |
 | Wiehle-Reston East                               | SV         | N06  |
 | Woodley Park-Zoo/Adams Morgan                    | RD         | A04  |
+
+## DC Metro Silver Line Phase II Stations
+A special thanks to [u/SandBoxJohn](https://www.reddit.com/user/SandBoxJohn) for these.
+| Name                                             | Lines      | Code |
+|--------------------------------------------------|------------|------|
+| Reston Town Center                               | SV         | N07  |
+| Herndon                                          | SV         | N08  |
+| Innovation Center                                | SV         | N09  |
+| Dulles Airport                                   | SV         | N10  |
+| Loudoun Gateway                                  | SV         | N11  |
+| Ashburn                                          | SV         | N12  |
+
+## Train Group Explanations
+A special thanks to [u/SandBoxJohn](https://www.reddit.com/user/SandBoxJohn) for these.
+| Line       | Train Group | Destination                                            |
+|------------|-------------|--------------------------------------------------------|
+| RD         | "1"         | Glenmont                                               |
+| RD         | "2"         | Shady Grove                                            |
+| BL, OR, SV | "1"         | New Carrollton, Largo Town Center                      |
+| BL, OR, SV | "2"         | Vienna, Franconia-Springfield, Wiehle-Reston East      |
+| GR, YL     | "1"         | Greenbelt                                              |
+| GR, YL     | "2"         | Huntington, Branch Avenue                              |
+| N/A        | "3"         | Center Platform at National Airport, West Falls Church |
