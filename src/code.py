@@ -68,12 +68,9 @@ if OFF_HOURS_ENABLED:
     OFF_HOUR, OFF_MINUTE = map(int, config['display_off_time'].split(":"))
 
 while True:
-    train_board.refresh()
-
-    if OFF_HOURS_ENABLED:
-        while is_off_hours():
-	    train_board.turn_off_display()
-            time.sleep(config['refresh_interval'])
-	train_board.turn_on_display()
-
+    if OFF_HOURS_ENABLED and is_off_hours():
+        train_board.turn_off_display()
+    else:
+        train_board.refresh()
+        train_board.turn_on_display()
     time.sleep(REFRESH_INTERVAL)
