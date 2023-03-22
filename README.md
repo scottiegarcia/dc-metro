@@ -62,7 +62,7 @@ This project contains the source code to create your own Washington DC Metro sig
     - The board will automatically flash the version of CircuitPython and remount as _CIRCUITPY_.
     - If something goes wrong, refer to the [Adafruit Documentation](https://learn.adafruit.com/adafruit-matrixportal-m4/install-circuitpython).
 
-3. Decompress the _lib.zip_ file for 8.x from this repository into the root of the _CIRCUITPY_ volume. There should be one folder named _lib_, with a plethora of files underneath. You can delete _lib.zip_ from the _CIRCUITPY_ volume, as it's no longer needed. To update to version 8.x, download the libraries from [here](https://circuitpython.org/libraries) and replace the corresponding files
+3. Decompress the _lib.zip_ file for 8.x from this repository into the root of the _CIRCUITPY_ volume. There should be one folder named _lib_, with a plethora of files underneath. You can delete _lib.zip_ from the _CIRCUITPY_ volume, as it's no longer needed.
 
     - It has been reported that this step may fail ([Issue #2](https://github.com/metro-sign/dc-metro/issues/2)), most likely due to the storage on the Matrix Portal not being able to handle the decompression. If this happens, unzip the _lib.zip_ file on your computer, and copy the _lib_ folder to the Matrix Portal. Command line tools could also be used if the above doesn't work.
 
