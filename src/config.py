@@ -14,21 +14,23 @@ config = {
 	#########################
 	# Metro Configuration   #
 	#########################
-	'source_api': 'WMATA', # WMATA or MetroHero.
+	'source_api': 'WMATA', # WMATA or MetroHero
 
 	# WMATA / MetroHero API Key
 	'wmata_api_key': '',
 	'metro_hero_api_key': '',
 
-	# Metro Station Code
-	'metro_station_codes': ['E03','C02'],
+	# Metro Station Codes
+	'metro_station_codes': ['D05','F05'],
 
-	# Metro Train Group
-	'train_groups': ['2','2'],
+	# Metro Train Groups
+	'swap_train_groups': False,
+	'train_groups_1': ['2','1'],
+	'train_groups_2': ['1','2'],
 
-	#Walking Distance Times, ignore trains arriving in less than this time
-	# [2, 12]
-	'walking_times': [8, 8],
+
+	# Walking Distance Times, ignore trains arriving in less than this time
+	'walking_times': [2, 12],
 
 	# WMATA API
 	'wmata_api_url': 'https://api.wmata.com/StationPrediction.svc/json/GetPrediction/',
@@ -54,10 +56,9 @@ config = {
 		'No Passenger': 'No Psngr',
 		'NoPssenger': 'No Psngr',
 		'ssenger': 'No Psngr'
-
 	},
 
-    #############################
+	#############################
     # Off Hours Configuration   #
     #############################
 
@@ -69,7 +70,7 @@ config = {
 
     # Time of day to turn board on and off - must be 24 hour "HH:MM"
     'display_on_time': "07:00",
-    'display_off_time': "22:00",
+    'display_off_time': "23:30",
 
     #########################
     # Display Configuration #
