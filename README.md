@@ -1,3 +1,9 @@
+Forked from [metro-sign](https://github.com/metro-sign/dc-metro) to allow multiple stations and implement a "walking distance" modifier to ignore trains you cannot get to in time. Requires CircuitPython 8. Follow below instructions but replace CircuitPython version 6 with version 7. Libraries must also be replaced with version 7 libraries.
+
+Includes fixes and features from:
+- Scott Garcia (scottiegarcia) (help with Metrohero API (RIP), tidying, and implementing shut off hours for the board) 
+- ScottKekoaShay (Auto swapping between train platforms, if desired)
+
 # Washington DC Metro Train Sign
 This project contains the source code to create your own Washington DC Metro sign. It was written using CircuitPython targeting the [Adafruit Matrix Portal](https://www.adafruit.com/product/4745) and is optimized for 64x32 RGB LED matrices.
 
@@ -50,13 +56,13 @@ This project contains the source code to create your own Washington DC Metro sig
     
     ![Matrix Connected via USB](img/usb-connected.jpg)
 
-2. Flash your _Matrix Portal_ with the latest release of CircuitPython 6.
+2. Flash your _Matrix Portal_ with the latest release of CircuitPython 8.
     - Download the [firmware from Adafruit](https://circuitpython.org/board/matrixportal_m4/).
     - Drag the downloaded _.uf2_ file into the root of the _MATRIXBOOT_ volume.
     - The board will automatically flash the version of CircuitPython and remount as _CIRCUITPY_.
     - If something goes wrong, refer to the [Adafruit Documentation](https://learn.adafruit.com/adafruit-matrixportal-m4/install-circuitpython).
 
-3. Decompress the _lib.zip_ file from this repository into the root of the _CIRCUITPY_ volume. There should be one folder named _lib_, with a plethora of files underneath. You can delete _lib.zip_ from the _CIRCUITPY_ volume, as it's no longer needed.
+3. Decompress the _lib.zip_ file for 8.x from this repository into the root of the _CIRCUITPY_ volume. There should be one folder named _lib_, with a plethora of files underneath. You can delete _lib.zip_ from the _CIRCUITPY_ volume, as it's no longer needed. To update to version 8.x, download the libraries from [here](https://circuitpython.org/libraries) and replace the corresponding files
 
     - It has been reported that this step may fail ([Issue #2](https://github.com/metro-sign/dc-metro/issues/2)), most likely due to the storage on the Matrix Portal not being able to handle the decompression. If this happens, unzip the _lib.zip_ file on your computer, and copy the _lib_ folder to the Matrix Portal. Command line tools could also be used if the above doesn't work.
 
@@ -71,7 +77,7 @@ This project contains the source code to create your own Washington DC Metro sig
     ![Loading Sign](img/loading.jpg)
 
 ## Part 3: Getting a WMATA / Metro Hero API Key
-Two API's are available with public metro data. The Official WMATA API and the MetroHero API. Either will work, but I opt for the latter because I think it's train times are more accurate and because it gives estimates for trains >30 minutes away. Either will work correctly
+Two API's are available with public metro data. The Official WMATA API and the MetroHero API. Either will work, but I opt for the latter because I think it's train times are more accurate and because it gives estimates for trains >30 minutes away. Either will work correctly, at least until Metrohero sunsets in July 2023, RIP.
 
 ### Part 3.a: Getting a WMATA API Key
 1. Create a WMATA developer account on [WMATA's Developer Website](https://developer.wmata.com/signup/).
@@ -97,8 +103,9 @@ If you'd like to configure your board to turn the display off for certain hours 
     1. If using MetroHero, update the _source_api_ field to `MetroHero`.
     2. Set either the _wmata_api_key_ or _metro_hero_api_key to the API key you got from [Part 3](#part-3-getting-a-wmata-/-metro-hero-api-key).
     3. Select your stations and lines from the [Metro Station Codes table](#dc-metro-station-codes), and set the _metro_station_codes_ value to the corresponding value in the table.
-    4. For _train_groups_, the values need to be either **'1'** or **'2'** or  **'3'**. This determines which platform's arrival times will be displayed. These typically fall in line with the values provided in the [Train Group table](#train-group-explanations), although single tracking and other events can cause these to change. The ordering must match the ordering used in _metro_station_codes_.
-    5. Set the _walking_times_ values to the time it takes you to get to these stations. This will make your sign ignore trains arriving in less than this much time.
+    4. For _train_groups_1_, the values need to be either **'1'** or **'2'** or  **'3'**. This determines which platform's arrival times will be displayed. These typically fall in line with the values provided in the [Train Group table](#train-group-explanations), although single tracking and other events can cause these to change. The ordering must match the ordering used in _metro_station_codes_.
+        1. If you would like for the board to swap which train groups are displayed on each refresh, set the _swap_train_groups_ varaible to True, and define your second set of train groups in _train_groups_2_ 
+    6. Set the _walking_times_ values to the time it takes you to get to these stations. This will make your sign ignore trains arriving in less than this much time.
 4. (Optional) Under the **Off Hours Configuration** section:
     1. Set _aio_username_ to the username you created with Adafruit in [Part 4]((optional)-obtain-adafruit-io-key-for-off-hours).
     2. Set _aio_key_ to the api key associated with your Adafruit account.
