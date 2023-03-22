@@ -22,7 +22,7 @@ class MetroApi:
             if config['source_api'] == 'WMATA':
                 # WMATA Method
                 api_url = config['wmata_api_url'] + ','.join(set(station_codes))
-                response = wifi.get(api_url, headers={'api_key': config['wmata_api_key']}, timeout=1).json()
+                response = wifi.get(api_url, headers={'api_key': config['wmata_api_key']}, timeout=30).json()
                 trains = list(filter(lambda t: (t['LocationCode'], t['Group']) in groups, response['Trains']))
             else:
                 #Metro Hero Method
@@ -35,7 +35,6 @@ class MetroApi:
                     trains.extend(list(filter(lambda t: (station, t['Group']) in groups, res)))
             print('Received response from ' + config['source_api'] + ' api...')
             TIME_BUFFER = round((time.time() - start)/60) + 1
-            print(trains)
             trains = [self._normalize_train_response(t, TIME_BUFFER) for t in trains]
             
             if walks != {}:
@@ -62,10 +61,10 @@ class MetroApi:
             return 0
         elif arr == 'ARR':
             return 1
-        elif not arr.isdigit():
-            return 100
-        else:
+        elif arr.isdigit():
             return int(arr)
+        else:
+            return 100 # DLY would fall into this case, but not sure how to handle it without storing what the previous time was
 
     def _normalize_train_response(self, train: dict, buff:int) -> dict:
         line = train['Line']
@@ -81,7 +80,8 @@ class MetroApi:
             arrival = int(arrival) - buff
             if arrival <= 0:
                 arrival = 'ARR'
-        arrival = str(arrival)
+            else:
+                arrival = str(arrival)
 
         if destination in config["station_mapping"]:
             destination = config["station_mapping"][destination]
