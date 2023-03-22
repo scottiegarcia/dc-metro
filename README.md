@@ -1,4 +1,4 @@
-Forked from [metro-sign](https://github.com/metro-sign/dc-metro) to allow multiple stations and implement a "walking distance" modifier to ignore trains you cannot get to in time. Requires CircuitPython 8. Follow below instructions but replace CircuitPython version 6 with version 7. Libraries must also be replaced with version 7 libraries.
+Forked from [metro-sign](https://github.com/metro-sign/dc-metro) to allow multiple stations and implement a "walking distance" modifier to ignore trains you cannot get to in time. Uses CircuitPython 8 and corresponding libraries.
 
 Includes fixes and features from:
 - Scott Garcia (scottiegarcia) (help with Metrohero API (RIP), tidying, and implementing shut off hours for the board) 
