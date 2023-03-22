@@ -32,8 +32,8 @@ OFF_HOURS_ENABLED = aio_username and aio_key and config.get("display_on_time") a
 REFRESH_INTERVAL = config['refresh_interval']
 STATION_CODES = config['metro_station_codes']
 TRAIN_GROUPS_1 = list(zip(STATION_CODES, config['train_groups_1']))
-TRAIN_GROUPS_2 = list(zip(STATION_CODES, config['train_groups_2'])) if config['swap_train_groups'] else None
-TRAIN_GROUPS = TRAIN_GROUPS_1
+TRAIN_GROUPS_2 = list(zip(STATION_CODES, config['train_groups_2'])) if config['swap_train_groups'] else TRAIN_GROUPS_1
+train_groups = TRAIN_GROUPS_1
 WALKING_TIMES = config['walking_times']
 if max(WALKING_TIMES) == 0:
     WALKING_TIMES = {}
@@ -58,16 +58,16 @@ def is_off_hours() -> bool:
 
 api = MetroApi()
 
-def refresh_trains() -> [dict]:
+def refresh_trains(train_groups: list) -> [dict]:
     try:
-         trains = api.fetch_train_predictions(wifi, STATION_CODES, TRAIN_GROUPS, WALKING_TIMES)
+        trains = api.fetch_train_predictions(wifi, STATION_CODES, train_groups, WALKING_TIMES)
     except MetroApiOnFireException:
         print(config['source_api'] + ' API might be on fire. Resetting wifi ...')
         wifi.reset()
         return None
     return trains
 
-train_board = TrainBoard(refresh_trains)
+train_board = TrainBoard(lambda: refresh_trains(train_groups))
 
 if OFF_HOURS_ENABLED:
     ON_HOUR, ON_MINUTE = map(int, config['display_on_time'].split(":"))
@@ -80,5 +80,5 @@ while True:
         train_board.refresh()
         train_board.turn_on_display()
         if config['swap_train_groups']:
-            TRAIN_GROUPS = TRAIN_GROUPS_1 if TRAIN_GROUPS == TRAIN_GROUPS_2 else TRAIN_GROUPS_1 
+            train_groups = TRAIN_GROUPS_1 if train_groups == TRAIN_GROUPS_2 else TRAIN_GROUPS_2
     time.sleep(REFRESH_INTERVAL)
