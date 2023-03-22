@@ -35,6 +35,7 @@ class MetroApi:
                     trains.extend(list(filter(lambda t: (station, t['Group']) in groups, res)))
             print('Received response from ' + config['source_api'] + ' api...')
             TIME_BUFFER = round((time.time() - start)/60) + 1
+            print(trains)
             trains = [self._normalize_train_response(t, TIME_BUFFER) for t in trains]
             
             if walks != {}:
@@ -43,7 +44,7 @@ class MetroApi:
             if len(groups) > 1:
                 trains = sorted(trains, key=lambda t: self.arrival_map(t['arrival']))
             
-            print("Trains returned by api: " + trains)
+            print("Trains returned by api: " + str(trains))
             print('Time to Update: ' + str(time.time() - start))
             return trains
 
