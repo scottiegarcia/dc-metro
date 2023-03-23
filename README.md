@@ -4,6 +4,8 @@ Includes fixes and features from:
 - Scott Garcia (scottiegarcia) (help with Metrohero API (RIP), tidying, and implementing shut off hours for the board) 
 - ScottKekoaShay (Auto swapping between train platforms, if desired)
 
+Original documentation below, I'm too lazy to add a new .gif:
+
 # Washington DC Metro Train Sign
 This project contains the source code to create your own Washington DC Metro sign. It was written using CircuitPython targeting the [Adafruit Matrix Portal](https://www.adafruit.com/product/4745) and is optimized for 64x32 RGB LED matrices.
 
